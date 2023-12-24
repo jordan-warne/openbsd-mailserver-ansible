@@ -5,7 +5,7 @@ Setup mail server using ansible, based on the wonderful guide by TuM'Fatig (Joel
 ## Requirements
 
 - Ansible >= 2.7
-- Server with OpenBSD
+- Server with OpenBSD (tested working as of OpenBSD 7.4)
 - SSH key to login to the server
 - Public domain resolving to the server (MX, AAAA and A)
 
