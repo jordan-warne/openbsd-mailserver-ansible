@@ -1,0 +1,28 @@
+# TLS certificate ------------------------------------------------------
+pki mail cert "/etc/ssl/{{ mail_fqdn }}.fullchain.pem"
+pki mail key "/etc/ssl/private/{{ mail_fqdn }}.key"
+
+# Incoming mail filters ------------------------------------------------
+filter "rdns" phase connect match !rdns disconnect "550 Nope."
+filter "fcrdns" phase connect match !fcrdns disconnect "550 Nope."
+filter "senderscore" proc-exec \
+  "/usr/local/libexec/smtpd/filter-senderscore -blockBelow 10 -junkBelow 70 -slowFactor 1000"
+filter "rspamd" proc-exec "filter-rspamd"
+
+# Domain and email tables ----------------------------------------------
+table vdomains file:/etc/mail/vdomains
+table vusers   file:/etc/mail/vusers
+
+# Listeners ------------------------------------------------------------
+listen on socket
+listen on all tls pki mail filter { "rdns", "fcrdns", "senderscore", "rspamd" }
+listen on all port submission tls-require pki mail auth mask-src
+
+# Actions to process ---------------------------------------------------
+action "local_mail" maildir junk virtual <vusers>
+action "outbound"   relay helo {{ mail_fqdn }}
+
+match from any       for domain <vdomains>   action "local_mail"
+match from any auth  for any                 action "outbound"
+match from local     for local               action "local_mail"
+match from local     for any                 action "outbound"

@@ -1,0 +1,33 @@
+- name: Template /etc/acme-client.conf
+  template:
+    src: templates/acme-client.j2
+    dest: /etc/acme-client.conf
+    mode: "0644"
+  tags: acme-client
+
+- name: Check whether the root TLS certificate exists or not
+  stat:
+    path: /etc/ssl/private/{{ domain }}.key
+  register: root_cert_name
+
+- name: Create root domain TLS certificate
+  command: acme-client -v {{ domain }}
+  when: not root_cert_name.stat.exists
+
+- name: Check whether the mail TLS certificate exists or not
+  stat:
+    path: /etc/ssl/private/{{ host }}.{{ domain }}.key
+  register: mail_cert_name
+
+- name: Create mail domain TLS certificate
+  command: acme-client -v {{ host }}.{{ domain }}
+  when: not mail_cert_name.stat.exists
+
+- name: Check whether the mta-sts TLS certificate exists or not
+  stat:
+    path: /etc/ssl/private/mta-sts.{{ domain }}.key
+  register: mail_cert_name
+
+- name: Create mta-sts domain TLS certificate
+  command: acme-client -v mta-sts.{{ domain }}
+  when: not mail_cert_name.stat.exists

@@ -1,0 +1,84 @@
+# $OpenBSD: httpd.conf,v 1.22 2020/11/04 10:34:18 denis Exp $
+
+server "{{ domain }}" {
+        listen on * port 80
+        location "/.well-known/acme-challenge/*" {
+                root "/acme"
+                request strip 2
+        }
+        location * {
+                block return 302 "https://$HTTP_HOST$REQUEST_URI"
+        }
+}
+
+server "{{ domain }}" {
+        listen on * tls port 443
+        tls {
+                certificate "/etc/ssl/{{ domain }}.fullchain.pem"
+                key "/etc/ssl/private/{{ domain }}.key"
+        }
+        location "/pub/*" {
+                directory auto index
+        }
+        location "/.well-known/acme-challenge/*" {
+                root "/acme"
+                request strip 2
+        }
+}
+
+server "{{ mail_fqdn }}" {
+        listen on * port 80
+        location "/.well-known/acme-challenge/*" {
+                root "/acme"
+                request strip 2
+        }
+        location * {
+                block return 302 "https://$HTTP_HOST$REQUEST_URI"
+        }
+}
+
+server "{{ mail_fqdn }}" {
+        listen on * tls port 443
+        tls {
+                certificate "/etc/ssl/{{ mail_fqdn }}.fullchain.pem"
+                key "/etc/ssl/private/{{ mail_fqdn }}.key"
+        }
+        location "/pub/*" {
+                directory auto index
+        }
+        location "/.well-known/acme-challenge/*" {
+                root "/acme"
+                request strip 2
+        }
+}
+
+server "mta-sts.{{ domain }}" {
+        listen on * port 80
+        location "/.well-known/acme-challenge/*" {
+                root "/acme"
+                request strip 2
+        }
+        location * {
+                block return 302 "https://$HTTP_HOST$REQUEST_URI"
+        }
+}
+
+server "mta-sts.{{ domain }}" {
+        listen on * tls port 443
+        tls {
+                certificate "/etc/ssl/mta-sts.{{ domain }}.fullchain.pem"
+                key "/etc/ssl/private/mta-sts.{{ domain }}.key"
+        }
+        location "/pub/*" {
+                directory auto index
+        }
+        location "/.well-known/acme-challenge/*" {
+                root "/acme"
+                request strip 2
+        }
+        location "/.well-known/mta-sts.txt" {
+                root "/mta-sts"
+                request strip 1
+                pass
+        }
+}

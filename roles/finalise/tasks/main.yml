@@ -1,0 +1,11 @@
+- name: Restart dovecot
+  command: rcctl restart dovecot
+
+- name: Restart smtpd
+  command: rcctl restart smtpd
+
+- name: Restart rspamd
+  command: rcctl restart rspamd
+
+- name: Restart httpd
+  command: rcctl restart httpd

@@ -1,0 +1,13 @@
+---
+# This is the top-level playbook
+
+- hosts: localhost
+  become: yes
+  roles:
+    - general
+    - httpd
+    - acme-client
+    - rspamd
+    - smtpd
+    - dovecot
+    - finalize

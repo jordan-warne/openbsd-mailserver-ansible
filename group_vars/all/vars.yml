@@ -1,0 +1,15 @@
+---
+# Vars for all hosts make sure to update before running
+
+host: mail
+domain: example.com
+ipaddress: "{{ ansible_default_ipv4.address }}"
+mail_fqdn: "{{ host }}.{{ domain }}"
+smtp_fqdn: "smtp.{{ domain }}"
+imap_fqdn: imap.{{ domain }}
+mail_user: mail
+# Email that will recieve postmaster, webmaster and abuse emails e.g. john@example.com
+user_email: john
+
+# this email will recieve certbot notifications about expiring certs
+email_for_updates: "{{ mail_user }}@{{ domain }}"

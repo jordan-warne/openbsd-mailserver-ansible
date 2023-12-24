@@ -1,0 +1,25 @@
+- name: Install base dependencies
+  command: pkg_add {{ item }}
+  loop:
+    - dovecot
+    - rspamd--hyperscan
+    - opensmtpd-filter-rspamd
+    - opensmtpd-filter-senderscore
+    - redis
+    - dovecot-pigeonhole
+    - roundcubemail
+    - mariadb-server
+    - php-pdo_mysql
+    - php-intl
+
+- name: Template /etc/mail/vusers
+  template:
+    src: templates/vusers.j2
+    dest: /etc/mail/vusers
+  tags: vusers
+
+- name: Template /etc/mail/vdomains
+  template:
+    src: templates/vdomains.j2
+    dest: /etc/mail/vdomains
+  tags: vdomains

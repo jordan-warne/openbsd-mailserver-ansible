@@ -1,0 +1,13 @@
+- name: Template /etc/mail/smtpd.conf
+  template:
+    src: templates/smtpd.j2
+    dest: /etc/mail/smtpd.conf
+    mode: "0644"
+  tags: smtpd
+
+- name: Template /etc/mail/mailname
+  template:
+    src: templates/mailname.j2
+    dest: /etc/mail/mailname
+    mode: "0644"
+  tags: smtpd

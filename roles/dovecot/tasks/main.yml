@@ -1,0 +1,73 @@
+- name: Ensure mail location is set correctly
+  ansible.builtin.lineinfile:
+    path: /etc/dovecot/conf.d/10-mail.conf
+    regexp: '^#mail_location'
+    line: mail_location = maildir:~/Maildir
+
+- name: Template /etc/dovecot/conf.d/10-master.conf
+  template:
+    src: templates/10-master.j2
+    dest: /etc/dovecot/conf.d/10-master.conf
+    mode: "0644"
+  tags: dovecot
+
+- name: Template /etc/dovecot/conf.d/10-ssl.conf
+  template:
+    src: templates/10-ssl.j2
+    dest: /etc/dovecot/conf.d/10-ssl.conf
+    mode: "0644"
+  tags: dovecot
+
+- name: Template /etc/dovecot/conf.d/20-imap.conf
+  template:
+    src: templates/20-imap.j2
+    dest: /etc/dovecot/conf.d/20-imap.conf
+    mode: "0644"
+  tags: dovecot
+
+- name: Template /etc/dovecot/conf.d/90-plugin.conf
+  template:
+    src: templates/90-plugin.j2
+    dest: /etc/dovecot/conf.d/90-plugin.conf
+    mode: "0644"
+  tags: dovecot
+
+- name: Copy report-spam.sieve
+  copy:
+    src: files/report-spam.sieve
+    dest: /usr/local/lib/dovecot/sieve/report-spam.sieve
+    mode: "0644"
+  tags: dovecot
+
+- name: Copy report-ham.sieve
+  copy:
+    src: files/report-ham.sieve
+    dest: /usr/local/lib/dovecot/sieve/report-ham.sieve
+    mode: "0644"
+  tags: dovecot
+
+- name: Copy sa-learn-spam.sh
+  copy:
+    src: files/sa-learn-spam.sh
+    dest: /usr/local/lib/dovecot/sieve/sa-learn-spam.sh
+    mode: "0755"
+  tags: dovecot
+
+- name: Copy sa-learn-ham.sh
+  copy:
+    src: files/sa-learn-spam.sh
+    dest: /usr/local/lib/dovecot/sieve/sa-learn-ham.sh
+    mode: "0755"
+  tags: dovecot
+
+- name: sievec report-ham.sieve
+  command: sievec /usr/local/lib/dovecot/sieve/report-ham.sieve
+
+- name: sievec report-spam.sieve
+  command: sievec /usr/local/lib/dovecot/sieve/report-spam.sieve
+
+- name: Enable dovecot
+  command: rcctl enable dovecot
+
+- name: Start dovecot
+  command: rcctl start dovecot

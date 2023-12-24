@@ -1,0 +1,47 @@
+---
+# Rspamd tasks
+
+- name: Enable redis
+  command: rcctl enable redis
+
+- name: Start redis
+  command: rcctl start redis
+
+- name: Copy greylist.conf
+  copy:
+    src: files/greylist.conf
+    dest: /etc/rspamd/local.d/greylist.conf
+    mode: "0644"
+  tags: rspamd
+
+- name: Copy redis.conf
+  copy:
+    src: files/redis.conf
+    dest: /etc/rspamd/local.d/redis.conf
+    mode: "0644"
+  tags: rspamd
+
+- name: Copy spf.conf
+  copy:
+    src: files/spf.conf
+    dest: /etc/rspamd/local.d/spf.conf
+    mode: "0644"
+  tags: rspamd
+
+- name: Check whether the dkim domain key exists or not
+  stat:
+    path: /etc/mail/dkim-{{ domain }}.key
+  register: register_name
+
+- name: Create dkim key if it doesn't exist yet
+  command: rspamadm dkim_keygen -b 2048 -d {{ domain }} -k /etc/mail/dkim-{{ domain }}.key > /etc/mail/dkim-dns-{{ domain }}.txt
+  when: not register_name.stat.exists
+
+- name: Enable rspamd
+  command: rcctl enable rspamd
+
+- name: Start rspamd
+  command: rcctl enable rspamd
+
+
+

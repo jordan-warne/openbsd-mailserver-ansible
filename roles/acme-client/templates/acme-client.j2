@@ -1,0 +1,30 @@
+#
+# $OpenBSD: acme-client.conf,v 1.4 2020/09/17 09:13:06 florian Exp $
+#
+authority letsencrypt {
+        api url "https://acme-v02.api.letsencrypt.org/directory"
+        account key "/etc/acme/letsencrypt-privkey.pem"
+}
+
+authority letsencrypt-staging {
+        api url "https://acme-staging-v02.api.letsencrypt.org/directory"
+        account key "/etc/acme/letsencrypt-staging-privkey.pem"
+}
+
+domain {{ domain }} {
+        domain key "/etc/ssl/private/{{ domain }}.key"
+        domain full chain certificate "/etc/ssl/{{ domain }}.fullchain.pem"
+        sign with letsencrypt
+}
+
+domain {{ mail_fqdn }} {
+        domain key "/etc/ssl/private/{{ mail_fqdn }}.key"
+        domain full chain certificate "/etc/ssl/{{ mail_fqdn }}.fullchain.pem"
+        sign with letsencrypt
+}
+
+domain mta-sts.{{ domain }} {
+        domain key "/etc/ssl/private/mta-sts.{{ domain }}.key"
+        domain full chain certificate "/etc/ssl/mta-sts.{{ domain }}.fullchain.pem"
+        sign with letsencrypt
+}

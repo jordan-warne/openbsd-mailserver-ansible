@@ -1,0 +1,7 @@
+---
+# This playbook disables all logging on the server for privacy, make sure to restart your server to make sure all changes are applied.
+
+- hosts: localhost
+  become: yes
+  roles:
+    - logging

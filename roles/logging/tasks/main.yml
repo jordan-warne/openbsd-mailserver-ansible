@@ -1,0 +1,12 @@
+- name: Disable logging in dovecot
+  ansible.builtin.lineinfile:
+    path: /etc/syslog.conf
+    regexp: '^mail.'
+    line: mail.warning
+
+- name: Copy logging.inc
+  copy:
+    src: files/logging.inc
+    dest: /etc/rspamd/overide.d/logging.inc
+    mode: "0600"
+  tags: rspamd
