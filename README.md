@@ -97,7 +97,7 @@ Don't skip this step unless you want to go to the spam folder.
 
 Make sure to enable DNSSEC at your domain provider!
 
-First you need to create a TLSA record, you can use this tool to generate one:
+Now you need to create a TLSA record, you can use this tool to generate one:
 
 https://www.huque.com/bin/gen_tlsa
 
