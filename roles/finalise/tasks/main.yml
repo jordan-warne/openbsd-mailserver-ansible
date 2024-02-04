@@ -9,3 +9,6 @@
 
 - name: Restart httpd
   command: rcctl restart httpd
+
+- name: Activate pf firewall configuration
+  command: pfctl -f /etc/pf.conf

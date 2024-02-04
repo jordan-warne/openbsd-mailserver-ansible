@@ -1,0 +1,6 @@
+- name: Copy pf conf to server
+  copy:
+    src: files/pf.conf
+    dest: /etc/pf.conf
+    mode: "0600"
+  tags: pf

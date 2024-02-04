@@ -10,4 +10,5 @@
     - rspamd
     - smtpd
     - dovecot
+    - pf
     - finalize
