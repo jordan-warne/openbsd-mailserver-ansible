@@ -1,28 +1,63 @@
-# TLS certificate ------------------------------------------------------
-pki mail cert "/etc/ssl/{{ mail_fqdn }}.fullchain.pem"
-pki mail key "/etc/ssl/private/{{ mail_fqdn }}.key"
+## PKI
+pki {{ mail_fqdn }} cert        "/etc/ssl/{{ mail_fqdn }}.fullchain.pem"
+pki {{ mail_fqdn }} key         "/etc/ssl/private/{{ mail_fqdn }}.key"
 
-# Incoming mail filters ------------------------------------------------
-filter "rdns" phase connect match !rdns disconnect "550 Nope."
-filter "fcrdns" phase connect match !fcrdns disconnect "550 Nope."
-filter "senderscore" proc-exec \
-  "/usr/local/libexec/smtpd/filter-senderscore -blockBelow 10 -junkBelow 70 -slowFactor 1000"
-filter "rspamd" proc-exec "filter-rspamd"
+## Since >=6.9 SNI is possible
+#pki another-domain.org cert    "/etc/ssl/another-domain.org_fullchain.pem"
+#pki another-domain.org key     "/etc/ssl/private/another-domain.org_private.pem"
 
-# Domain and email tables ----------------------------------------------
-table vdomains file:/etc/mail/vdomains
-table vusers   file:/etc/mail/vusers
+## Filters
+filter check_dyndns phase connect match rdns regex { '.*\.dyn\..*', '.*\.dsl\..*' } \
+        disconnect "550 no residential connections"
 
-# Listeners ------------------------------------------------------------
-listen on socket
-listen on all tls pki mail filter { "rdns", "fcrdns", "senderscore", "rspamd" }
-listen on all port submission tls-require pki mail auth mask-src
+filter check_rdns phase connect match !rdns \
+        disconnect "550 no rDNS"
 
-# Actions to process ---------------------------------------------------
-action "local_mail" maildir junk virtual <vusers>
-action "outbound"   relay helo {{ mail_fqdn }}
+filter check_fcrdns phase connect match !fcrdns \
+        disconnect "550 no FCrDNS"
 
-match from any       for domain <vdomains>   action "local_mail"
-match from any auth  for any                 action "outbound"
-match from local     for local               action "local_mail"
-match from local     for any                 action "outbound"
+filter senderscore \
+        proc-exec "filter-senderscore -blockBelow 10 -junkBelow 70 -slowFactor 5000"
+
+filter rspamd proc-exec "filter-rspamd"
+
+## Tables
+table aliases                   file:/etc/mail/aliases
+table domains                   file:/etc/mail/domains
+table passwd                    passwd:/etc/mail/passwd
+table virtuals                  file:/etc/mail/virtuals
+table blacklist-recipients      file:/etc/mail/blacklist-recipients
+
+## Limits
+smtp ciphers "HIGH:!aNULL:!TLSv1:!MD5:!RC4:!GOST89MAC:@STRENGTH"
+smtp max-message-size 90M
+
+## Ports
+listen on all tls pki {{ mail_fqdn }} hostname {{ mail_fqdn }} \
+        filter { check_dyndns, check_rdns, check_fcrdns, senderscore, rspamd }
+listen on all smtps pki {{ mail_fqdn }} hostname {{ mail_fqdn }} \
+        auth <passwd> filter rspamd
+listen on all port submission tls-require pki {{ mail_fqdn }} \
+        hostname {{ mail_fqdn }} auth <passwd> mask-src filter rspamd
+
+## Actions
+action "mda_with_aliases" mda \
+        "/usr/local/libexec/dovecot/dovecot-lda -f %{sender} -d %{dest}" \
+        alias <aliases> user vmail
+
+action "mda_with_virtuals" mda \
+        "/usr/local/libexec/dovecot/dovecot-lda -f %{sender} -d %{dest}" \
+        virtual <virtuals> user vmail
+
+action "mda_without_rspamd" mda \
+        "/usr/local/libexec/dovecot/dovecot-lda -f %{sender} -d %{dest}" \
+        virtual <virtuals> user vmail
+
+action "relay" relay
+
+match from any mail-from <blacklist-recipients> for domain <domains> reject
+match for local action "mda_with_virtuals"
+match auth from any for domain <domains> action "mda_without_rspamd"
+match from any for domain <domains> action "mda_with_virtuals"
+match from local for any action "relay"
+match auth from any for any action "relay"
