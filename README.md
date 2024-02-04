@@ -93,6 +93,8 @@ The playbook will generate the DKIM DNS, check this file for what to enter in yo
 
 Don't skip this step unless you want to go to the spam folder.
 
+## Setup 
+
 ## Check rspamd reporting
 
 You can use the rspamd web GUI to view spam:
