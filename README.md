@@ -93,7 +93,21 @@ The playbook will generate the DKIM DNS, check this file for what to enter in yo
 
 Don't skip this step unless you want to go to the spam folder.
 
-## Setup 
+## Setup DANE email security
+
+Make sure to enable DNSSEC at your domain provider!
+
+First you need to create a TLSA record, you can use this tool to generate one:
+
+https://www.huque.com/bin/gen_tlsa
+
+Use the public key from your domain to generate the TLSA record.
+Usage field: DANE-EE
+Selector field: SPKI
+Matching type field: SHA-256: SHA-256 hash
+Port: 25
+Transport protocol: tcp
+Domain name: (your mail server fqdn)
 
 ## Check rspamd reporting
 
